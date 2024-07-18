@@ -38,11 +38,11 @@ def check_and_update_firestore():
         private_key = doc.to_dict().get('applePrivateKey')
 
         if private_key is None:
-            generation_command = "ssh-keygen -t rsa -b 2048 -m PEM -f private_key -q -N \"\""
+            generation_command = "ssh-keygen -t rsa -b 2048 -m PEM -f private_key.pem -q -N \"\""
             subprocess.run(generation_command, shell=True)
 
             # Read the generated private key from the file
-            with open('private_key', 'r') as private_key_file:
+            with open('private_key.pem', 'r') as private_key_file:
                 private_key = private_key_file.read()
 
             # Upload the generated private key to Firestore

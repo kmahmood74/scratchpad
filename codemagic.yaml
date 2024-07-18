@@ -39,9 +39,9 @@ workflows:
       #   script: |
       #     cd starter
       #     flutter analyze
-      # - name: Use Provisioning Profiles
-      #   script: |
-      #     xcode-project use-profiles
+      - name: Use Provisioning Profiles
+        script: |
+          xcode-project use-profiles
 
       - name: Flutter build ipa and automatic versioning
         script: |

@@ -41,6 +41,10 @@ workflows:
       #     flutter analyze
       - name: Use Provisioning Profiles
         script: |
+          echo $CERTIFICATE_PRIVATE_KEY
+          keychain initialize
+          app-store-connect fetch-signing-files "com.ensembleui.khurrambuild" --type IOS_APP_STORE --create
+          keychain add-certificates
           xcode-project use-profiles
 
       - name: Flutter build ipa and automatic versioning

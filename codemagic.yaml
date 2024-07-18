@@ -17,9 +17,16 @@ workflows:
       xcode: latest # <-- set to specific version e.g. 14.3, 15.0 to avoid unexpected updates.
       cocoapods: default
     scripts:
+      - name: clean and create
+        script: |
+          rm -r ios
+          rm -r android
+          rm -r macos
+          rm -r linux
+          rm -r web
+          flutter create --org com.ensembleui --project-name khurrambuild --platform=ios .
       - name: Get Flutter packages
         script: |
-          cd starter
           flutter pub get
           cd ios
           pod install
@@ -34,17 +41,14 @@ workflows:
       #     flutter analyze
       - name: Use Provisioning Profiles
         script: |
-          cd starter
           xcode-project use-profiles
-          cd ..
 
       - name: Flutter build ipa and automatic versioning
         script: |
-          cd starter
           # See the following link about getting the latest App Store or TestFlight version - https://docs.codemagic.io/knowledge-codemagic/build-versioning/#app-store-or-testflight-latest-build-number
           flutter build ipa --release --no-tree-shake-icons \
             --build-name=1.0.0 \
-            --build-number=$(($(app-store-connect get-latest-testflight-build-number "$APP_ID") + 1))
+            --build-number=7
     artifacts:
       - /build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log

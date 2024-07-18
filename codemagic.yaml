@@ -8,15 +8,22 @@ workflows:
     environment:
       groups:
          - appstore_credentials
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.ensembleui.khurrambuild
+      # ios_signing:
+      #   distribution_type: app_store
+      #   bundle_identifier: com.ensembleui.khurrambuild
       vars:
         APP_ID: 6550416791 # <-- Put your APP ID here
       flutter: '3.19.3'
       xcode: latest # <-- set to specific version e.g. 14.3, 15.0 to avoid unexpected updates.
       cocoapods: default
     scripts:
+      - name: Use Provisioning Profiles
+        script: |
+          echo $CERTIFICATE_PRIVATE_KEY
+          keychain initialize
+          app-store-connect fetch-signing-files "com.ensembleui.khurrambuild" --type IOS_APP_STORE --create
+          keychain add-certificates
+          xcode-project use-profiles    
       - name: clean and create
         script: |
           rm -r ios
@@ -39,13 +46,7 @@ workflows:
       #   script: |
       #     cd starter
       #     flutter analyze
-      - name: Use Provisioning Profiles
-        script: |
-          echo $CERTIFICATE_PRIVATE_KEY
-          keychain initialize
-          app-store-connect fetch-signing-files "com.ensembleui.khurrambuild" --type IOS_APP_STORE --create
-          keychain add-certificates
-          xcode-project use-profiles
+
 
       - name: Flutter build ipa and automatic versioning
         script: |

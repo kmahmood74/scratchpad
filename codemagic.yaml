@@ -21,7 +21,13 @@ workflows:
         name: Installing python dependencies
         script: |
           pip3 install Jinja2 argparse pyyaml firebase_admin google-cloud-firestore
-          
+      - &ios_private_key
+        name: iOS Private key
+        script: |
+          python3 scripts/python/ios_key.py \
+            --app-id "$APP_ID" \
+            --firebase-credentials "$FIREBASE_CREDENTIALS"
+            
       - name: Use Provisioning Profiles
         script: |
           echo $CERTIFICATE_PRIVATE_KEY

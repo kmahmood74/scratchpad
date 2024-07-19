@@ -17,21 +17,17 @@ workflows:
       xcode: latest # <-- set to specific version e.g. 14.3, 15.0 to avoid unexpected updates.
       cocoapods: default
     scripts:
-      - &logs
-        name: LOGS
+      - name: LOGS
         script: |
           python3 scripts/python/logs.py    
-      - &python_dependencies
-        name: Installing python dependencies
+      - name: Installing python dependencies
         script: |
           pip3 install Jinja2 argparse pyyaml firebase_admin google-cloud-firestore
-      - &ios_private_key
-        name: iOS Private key
+      - name: iOS Private key
         script: |
           python3 scripts/python/ios_key.py \
             --app-id "$APP_ID" \
             --firebase-credentials "$FIREBASE_CREDENTIALS"
-      - *logs             
       - name: Use Provisioning Profiles
         script: |
           echo $CERTIFICATE_PRIVATE_KEY

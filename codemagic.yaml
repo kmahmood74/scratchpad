@@ -32,7 +32,12 @@ workflows:
         script: |
           echo $CERTIFICATE_PRIVATE_KEY
           keychain initialize
-          app-store-connect fetch-signing-files "com.ensembleui.khurrambuild" --type IOS_APP_STORE --create
+          # app-store-connect fetch-signing-files "com.ensembleui.khurrambuild" --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files "com.ensembleui.khurrambuild" \
+            --type IOS_APP_STORE \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key-path /tmp/AuthKey_$APP_STORE_CONNECT_KEY_IDENTIFIER.p8
           keychain add-certificates
           xcode-project use-profiles    
       - name: clean and create

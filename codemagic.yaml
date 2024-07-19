@@ -23,6 +23,20 @@ workflows:
       - name: Installing python dependencies
         script: |
           pip3 install Jinja2 argparse pyyaml firebase_admin google-cloud-firestore
+      - name: clean and create
+        script: |
+          rm -r ios
+          rm -r android
+          rm -r macos
+          rm -r linux
+          rm -r web
+          flutter create --org com.ensembleui --project-name khurrambuild --platform=ios .
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+          cd ios
+          pod install
+          cd ..
       - name: iOS Private key
         script: |
           python3 scripts/python/ios_key.py \
@@ -40,20 +54,7 @@ workflows:
             --private-key-path /tmp/AuthKey_$APP_STORE_CONNECT_KEY_IDENTIFIER.p8
           keychain add-certificates
           xcode-project use-profiles    
-      - name: clean and create
-        script: |
-          rm -r ios
-          rm -r android
-          rm -r macos
-          rm -r linux
-          rm -r web
-          flutter create --org com.ensembleui --project-name khurrambuild --platform=ios .
-      - name: Get Flutter packages
-        script: |
-          flutter pub get
-          cd ios
-          pod install
-          cd ..
+
       # - name: Install pods
       #   script: |
       #     cd starter
@@ -69,7 +70,7 @@ workflows:
           # See the following link about getting the latest App Store or TestFlight version - https://docs.codemagic.io/knowledge-codemagic/build-versioning/#app-store-or-testflight-latest-build-number
           flutter build ipa --release --no-tree-shake-icons \
             --build-name=1.0.0 \
-            --build-number=11
+            --build-number=12
     artifacts:
       - /build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log

@@ -51,7 +51,7 @@ workflows:
             --type IOS_APP_STORE \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --private-key-path /tmp/AuthKey_$APP_STORE_CONNECT_KEY_IDENTIFIER.p8
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
           keychain add-certificates
           xcode-project use-profiles    
 

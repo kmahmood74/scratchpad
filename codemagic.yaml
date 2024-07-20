@@ -6,128 +6,38 @@ workflows:
     # integrations:
     #   app_store_connect: codemagic
     environment:
-      groups:
-         - appstore_credentials
-      # ios_signing:
-      #   distribution_type: app_store
-      #   bundle_identifier: com.ensembleui.khurrambuild
-      vars:
-        APP_ID: 6550416791 # <-- Put your APP ID here
-        APP_STORE_CONNECT_KEY_ID: $APP_STORE_CONNECT_KEY_ID
-        APP_STORE_CONNECT_ISSUER_ID: $APP_STORE_CONNECT_ISSUER_ID
-        APP_STORE_CONNECT_PRIVATE_KEY: $APP_STORE_CONNECT_PRIVATE_KEY
-        CERTIFICATE_PRIVATE_KEY: $CERTIFICATE_PRIVATE_KEY  # Your private key
-        CERTIFICATE_PASSWORD: $CERTIFICATE_PASSWORD  # Password for the private key, if needed
-        IOS_PACKAGE_NAME: "com.ensembleui.khurrambuild"
-        BUILD_NAME: "1.0.0"
-        BUILD_VERSION: "18"
-
       flutter: '3.19.3'
-      xcode: latest # <-- set to specific version e.g. 14.3, 15.0 to avoid unexpected updates.
+      xcode: "15.4"
       cocoapods: default
     scripts:
-      - name: LOGS
+      - name: clean and create
         script: |
-          python3 scripts/python/logs.py    
-#      - name: Installing python dependencies
-#        script: |
-#          pip3 install Jinja2 argparse pyyaml firebase_admin google-cloud-firestore
-#      - name: clean and create
-#        script: |
-#          rm -r ios
-#          rm -r android
-#          rm -r macos
-#          rm -r linux
-#          rm -r web
-#          flutter create --org com.ensembleui --project-name khurrambuild --platform=ios .
-#      - name: Get Flutter packages
-#        script: |
-#          flutter pub get
-#          cd ios
-#          pod install
-#          cd ..
-#      - name: iOS Private key
-#        script: |
-#          python3 scripts/python/ios_key.py \
-#            --app-id "$APP_ID" \
-#            --firebase-credentials "$FIREBASE_CREDENTIALS"
-      - name: Decode and Save Private Key
+          rm -r ios
+          rm -r android
+          rm -r macos
+          rm -r linux
+          rm -r web
+          flutter create --org com.ensembleui --project-name khurrambuild --platform=ios .
+      - name: Setup code signing identities
         script: |
-          echo "$CERTIFICATE_PRIVATE_KEY" > /tmp/private_key.p12
-          if [ -n "$CERTIFICATE_PASSWORD" ]; then
-            openssl pkcs12 -in /tmp/private_key.p12 -nocerts -out /tmp/private_key.pem -passin pass:$CERTIFICATE_PASSWORD -passout pass:$CERTIFICATE_PASSWORD
-          else
-            openssl pkcs12 -in /tmp/private_key.p12 -nocerts -out /tmp/private_key.pem -passin pass: -passout pass:
-          fi
-          openssl rsa -in /tmp/private_key.pem -out /tmp/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
-
-      - name: Fetch or Create Signing Files
-        script: |
+          app-store-connect fetch-signing-files com.ensembleui.khurrambuild --create --type IOS_APP_STORE --platform IOS --issuer-id 84d31bee-8808-4482-a687-9214a0325be7 --key-id JF3H5QSMDF --private-key @env:AUTH_KEY --certificate-key @env:CERTIFICATE_KEY
           keychain initialize
-          if ! app-store-connect fetch-signing-files "$IOS_PACKAGE_NAME" --type IOS_APP_STORE --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" --key-id "$APP_STORE_CONNECT_KEY_ID" --private-key /tmp/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8; then
-            echo "No existing signing files found, creating a new distribution certificate..."
-            app-store-connect create-certificate --type DISTRIBUTION --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" --key-id "$APP_STORE_CONNECT_KEY_ID" --private-key /tmp/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
-            app-store-connect fetch-signing-files "$IOS_PACKAGE_NAME" --type IOS_APP_STORE --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" --key-id "$APP_STORE_CONNECT_KEY_ID" --private-key /tmp/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8
-          fi
-      - name: Add Certificates to Keychain
-        script: keychain add-certificates
-
-      - name: Use Provisioning Profiles
-        script: xcode-project use-profiles
-#      - name: Use Provisioning Profiles
-#        script: |
-#          echo $CERTIFICATE_PRIVATE_KEY
-#          keychain initialize
-#          # app-store-connect fetch-signing-files "$IOS_PACKAGE_NAME" --type IOS_APP_STORE --create
-#          app-store-connect fetch-signing-files "$IOS_PACKAGE_NAME" \
-#            --type IOS_APP_STORE \
-#            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-#            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-#            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
-#          keychain add-certificates
-#          xcode-project use-profiles
-
-      # - name: Install pods
-      #   script: |
-      #     cd starter
-      #     find . -name "Podfile" -execdir pod install \;
-      # - name: Flutter analyze
-      #   script: |
-      #     cd starter
-      #     flutter analyze
-
-
-      - name: Flutter build ipa and automatic versioning
+          keychain add-certificates
+      - name: Installing dependencies
         script: |
-          # See the following link about getting the latest App Store or TestFlight version - https://docs.codemagic.io/knowledge-codemagic/build-versioning/#app-store-or-testflight-latest-build-number
-          flutter build ipa --release --no-tree-shake-icons \
-            --build-name=$BUILD_NAME \
-            --build-number=$BUILD_VERSION
-            --export-options-plist=/Users/builder/export_options.plist
+          flutter packages pub get
+      - name: Building ios
+        script: |
+          xcode-project use-profiles
+          flutter build ipa --release --export-options-plist /Users/builder/export_options.plist --no-tree-shake-icons --build-name=1.0.0 --build-number=19
+
+      - name: Publishing
+        script: |
+          app-store-connect publish --path /Users/builder/clone/build/ios/ipa/khurrambuild.ipa --key-id JF3H5QSMDF --issuer-id 84d31bee-8808-4482-a687-9214a0325be7 --private-key @env:APP_STORE_CONNECT_PUBLISHER_PRIVATE_KEY
     artifacts:
       - /build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
       - flutter_drive.log
-    publishing:
-      app_store_connect:
-        # Contents of the API key saved as a secure environment variable:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY 
-        
-        # Alphanumeric value that identifies the API key, 
-        # can also reference environment variable such as $APP_STORE_CONNECT_KEY_IDENTIFIER
-        key_id: JF3H5QSMDF 
-
-        # Alphanumeric value that identifies who created the API key,
-        # can also reference environment variable such as $APP_STORE_CONNECT_ISSUER_ID
-        issuer_id: 84d31bee-8808-4482-a687-9214a0325be7
-        
-        # Configuration related to TestFlight (optional)
-
-        # Optional boolean, defaults to false. Whether or not to submit the uploaded
-        # build to TestFlight beta review.
-        # Note: This action is performed during post-processing.
-        submit_to_testflight: true
-
 
 
 

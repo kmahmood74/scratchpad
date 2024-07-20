@@ -9,6 +9,8 @@ workflows:
       flutter: '3.19.3'
       xcode: "15.4"
       cocoapods: default
+      groups:
+        - appstore_credentials
     scripts:
       - name: clean and create
         script: |

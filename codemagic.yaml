@@ -20,7 +20,7 @@ workflows:
           flutter create --org com.ensembleui --project-name khurrambuild --platform=ios .
       - name: Setup code signing identities
         script: |
-          app-store-connect fetch-signing-files com.ensembleui.khurrambuild --create --type IOS_APP_STORE --platform IOS --issuer-id 84d31bee-8808-4482-a687-9214a0325be7 --key-id JF3H5QSMDF --private-key @env:AUTH_KEY --certificate-key @env:CERTIFICATE_KEY
+          app-store-connect fetch-signing-files com.ensembleui.khurrambuild --create --type IOS_APP_STORE --platform IOS
           keychain initialize
           keychain add-certificates
       - name: Installing dependencies
@@ -29,11 +29,11 @@ workflows:
       - name: Building ios
         script: |
           xcode-project use-profiles
-          flutter build ipa --release --export-options-plist /Users/builder/export_options.plist --no-tree-shake-icons --build-name=1.0.0 --build-number=19
+          flutter build ipa --release --export-options-plist /Users/builder/export_options.plist --no-tree-shake-icons --build-name=1.0.0 --build-number=20
 
       - name: Publishing
         script: |
-          app-store-connect publish --path /Users/builder/clone/build/ios/ipa/khurrambuild.ipa --key-id JF3H5QSMDF --issuer-id 84d31bee-8808-4482-a687-9214a0325be7 --private-key @env:APP_STORE_CONNECT_PUBLISHER_PRIVATE_KEY
+          app-store-connect publish --path /Users/builder/clone/build/ios/ipa/khurrambuild.ipa
     artifacts:
       - /build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
